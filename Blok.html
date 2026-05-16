@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blok Blaze</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f172a;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #game {
+    text-align: center;
+  }
+  canvas {
+    background: #1e293b;
+    border: 2px solid #38bdf8;
+    border-radius: 12px;
+    touch-action: none;
+  }
+  #ui {
+    margin: 10px 0;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-around;
+  }
+  button {
+    background: #38bdf8;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: #0f172a;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 10px;
+  }
+  button:active { transform: scale(0.95); }
+  #menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <h2>🔥 Blok Blaze 🔥</h2>
+  <div id="ui">
+    <span>Skor: <span id="score">0</span></span>
+    <span>Nyawa: <span id="lives">3</span></span>
+  </div>
+  <canvas id="canvas" width="320" height="480"></canvas>
+  <br>
+  
+  <div id="menu">
+    <h3>Blok Blaze</h3>
+    <button onclick="startGame()">Mulai Game</button>
+    <button onclick="showHelp()">Cara Main</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const scoreEl = document.getElementById("score");
+const livesEl = document.getElementById("lives");
+const menuEl = document.getElementById("menu");
+
+let ball, paddle, bricks, score, lives, gameRunning;
+
+function init() {
+  ball = { x: 160, y: 400, dx: 3, dy: -3, r: 8 };
+  paddle = { x: 120, y: 450, w: 80, h: 10, speed: 0 };
+  bricks = [];
+  score = 0;
+  lives = 3;
+  gameRunning = false;
+  
+  for(let r=0; r<5; r++) {
+    for(let c=0; c<6; c++) {
+      bricks.push({ x: 10 + c*52, y: 40 + r*25, w: 48, h: 20, alive: true });
+    }
+  }
+  updateUI();
+  menuEl.style.display = "block";
+  canvas.style.display = "none";
+}
+
+function updateUI() {
+  scoreEl.textContent = score;
+  livesEl.textContent = lives;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.fillStyle = "#f97316";
+  bricks.forEach(b => {
+    if(b.alive) ctx.fillRect(b.x, b.y, b.w, b.h);
+  });
+  
+  ctx.fillStyle = "#38bdf8";
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+  ctx.fill();
+  
+  ctx.fillStyle = "#22d3ee";
+  ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+}
+
+function update() {
+  if(!gameRunning) return;
+  
+  ball.x += ball.dx;
+  ball.y += ball.dy;
+  paddle.x += paddle.speed;
+  
+  if(ball.x < ball.r || ball.x > canvas.width-ball.r) ball.dx *= -1;
+  if(ball.y < ball.r) ball.dy *= -1;
+  
+  if(ball.y + ball.r > paddle.y && ball.x > paddle.x && ball.x < paddle.x + paddle.w) {
+    ball.dy *= -1;
+    ball.y = paddle.y - ball.r;
+  }
+  
+  bricks.forEach(b => {
+    if(b.alive && ball.x > b.x && ball.x < b.x+b.w && ball.y > b.y && ball.y < b.y+b.h) {
+      b.alive = false;
+      ball.dy *= -1;
+      score += 10;
+      updateUI();
+    }
+  });
+  
+  if(ball.y > canvas.height) {
+    lives--;
+    updateUI();
+    if(lives <= 0) {
+      gameRunning = false;
+      alert("Game Over! Skor: " + score);
+      init();
+    } else {
+      ball.x = 160; ball.y = 400; ball.dx = 3; ball.dy = -3;
+    }
+  }
+  
+  if(bricks.every(b =>!b.alive)) {
+    gameRunning = false;
+    alert("Menang! Skor: " + score);
+    init();
+  }
+  
+  if(paddle.x < 0) paddle.x = 0;
+  if(paddle.x > canvas.width - paddle.w) paddle.x = canvas.width - paddle.w;
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+function startGame() {
+  menuEl.style.display = "none";
+  canvas.style.display = "block";
+  gameRunning = true;
+  init();
+}
+
+function showHelp() {
+  alert("Geser jari di layar buat gerakin paddle. Hancurin semua blok!");
+}
+
+canvas.addEventListener("touchmove", e => {
+  if(gameRunning) {
+    let touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+    paddle.x = touchX - paddle.w/2;
+  }
+});
+canvas.addEventListener("mousemove", e => {
+  if(gameRunning) {
+    let mouseX = e.clientX - canvas.getBoundingClientRect().left;
+    paddle.x = mouseX - paddle.w/2;
+  }
+});
+
+document.addEventListener("keydown", e => {
+  if(e.key === "ArrowLeft") paddle.speed = -6;
+  if(e.key === "ArrowRight") paddle.speed = 6;
+});
+document.addEventListener("keyup", e => {
+  if(e.key === "ArrowLeft" || e.key === "ArrowRight") paddle.speed = 0;
+});
+
+init();
+loop();
+</script>
+</body>
+</html>
