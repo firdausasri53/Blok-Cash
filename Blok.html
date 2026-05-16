@@ -1,39 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Blok Blaze</title>
-<style>
-  body { background: #0f172a; color: #fff; text-align: center; }
-  canvas { background: #1e293b; border: 2px solid #38bdf8; }
-</style>
+  <title>Blok Blaze</title>
+  <style>
+    body {
+      background-color: #f1f1f1;
+      margin: 0;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      text-align: center;
+      padding-top: 100px;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 20px;
+      background: #ff5722;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-<h2>🔥 Blok Blaze</h2>
-<div id="menu">
-  <button onclick="mulai()">Mulai Game</button>
-</div>
-<canvas id="canvas" width="320" height="480" style="display:none;"></canvas>
-
-<script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-let gameRunning = false;
-
-function mulai() {
-  document.getElementById("menu").style.display = "none";
-  canvas.style.display = "block";
-  gameRunning = true;
-  loop();
-}
-
-function loop() {
-  if(gameRunning) {
-    ctx.clearRect(0,0,320,480);
-    ctx.fillStyle = "#38bdf8";
-    ctx.fillRect(100,100,120,20);
-    requestAnimationFrame(loop);
-  }
-}
-</script>
+  <h1>Blok Blaze</h1>
+  <button onclick="alert('Game mulai!')">Mulai</button>
 </body>
 </html>
